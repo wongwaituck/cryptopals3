@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
+'''
+Single-byte XOR cipher
+The hex encoded string:
 
-# english character frequency
-# from http://pi.math.cornell.edu/~mec/2003-2004/cryptography/subs/frequencies.html
+1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736
+... has been XOR'd against a single character. Find the key, decrypt the message.
+
+You can do this by hand. But don't: write code to do it for you.
+
+How? Devise some method for "scoring" a piece of English plaintext. Character frequency is a good metric. Evaluate each output and choose the one with the best score.
+'''
 
 from challenge1 import hex_to_bytearray
 from challenge2 import xor
 
+# english character frequency
+# from http://pi.math.cornell.edu/~mec/2003-2004/cryptography/subs/frequencies.html
 FREQUENCY_TABLE = {
     "E": 12.02,
     "T": 9.10,
