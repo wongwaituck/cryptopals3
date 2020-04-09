@@ -49,6 +49,8 @@ FREQUENCY_TABLE = {
 # x: string
 def l1_english_dist(x):
     x = x.upper()
+    # remove all white spaces
+    x = x.replace(' ', '')
     freq_table = {}
     dist = 0
     for c in x:
@@ -61,13 +63,14 @@ def l1_english_dist(x):
         if k in FREQUENCY_TABLE:
             dist += abs(freq_table[k] - FREQUENCY_TABLE[k])
         else:
-            dist += freq_table[k]
+            dist += freq_table[k] 
     
     for k in FREQUENCY_TABLE.keys():
         if k not in freq_table:
             dist += FREQUENCY_TABLE[k]
 
     return dist
+
 
 # bruteforce a single byte xor key on the hex string x
 def bruteforce_single_byte(x):
