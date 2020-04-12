@@ -23,7 +23,7 @@ import math
 
 # converts a string to its byte array form by mapping them to their ordinal represenation
 def ba(x):
-    return bytearray(map(lambda c : ord(c), x))
+    return bytearray(map(lambda c : c  if type(c) == int else ord(c), x))
 
 # encrypts plaintext x with key k, repeating if |k| < x.
 def repeating_xor(x, k):
