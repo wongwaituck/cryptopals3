@@ -20,14 +20,14 @@ from challenge1 import b64_to_bytes
 # encrypts AES-ECB using library functions
 def encrypt_aes_ecb(x, k):
     cipher = AES.new(k, AES.MODE_ECB)
-    ct = cipher.encrypt(x)
+    ct = cipher.encrypt(bytes(x))
     return ct
 
 
 # decrypts AES-ECB using library functions
 def decrypt_aes_ecb(x, k):
     cipher = AES.new(k, AES.MODE_ECB)
-    pt = cipher.decrypt(x)
+    pt = cipher.decrypt(bytes(x))
     return pt
 
 if __name__=="__main__":

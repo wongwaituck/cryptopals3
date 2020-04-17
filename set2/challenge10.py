@@ -22,6 +22,7 @@ from challenge6 import chunk
 from challenge1 import b64_to_bytes
 from challenge2 import xor
 from challenge7 import encrypt_aes_ecb, decrypt_aes_ecb
+from challenge9 import pkcs7_pad, pkcs7_unpad
 import functools 
 
 BLK_SZ = 16
@@ -47,16 +48,42 @@ def aes_cbc_decrypt(ct, key, iv):
         # append to pt
         pt.append(pt_blk)
 
-    pt_s = functools.reduce(lambda a,b: a + b, pt)
-    return pt_s
+    pt_s = functools.reduce(lambda a, b: a + b, pt)
+
+    # unpad
+    return pkcs7_unpad(pt_s)
 
 def aes_cbc_encrypt(pt, key, iv):
-    pass
+    # pad if needed
+    pt_padded = pkcs7_pad(pt, BLK_SZ)
+    pt_chunks = chunk(pt_padded, BLK_SZ)
+
+    prev_blk = iv
+    ct_blks = []
+    for pt_blk in pt_chunks:
+        # xor with prev blk
+        pt_xored = xor(prev_blk, pt_blk)
+
+        # ECB encrypt
+        ct_blk = encrypt_aes_ecb(pt_xored, key)
+        ct_blks.append(ct_blk)
+
+        # store as prev blk    
+        prev_blk = ct_blk
+    
+    ct_s = functools.reduce(lambda a, b: a + b, ct_blks)
+
+    return ct_s
 
 
 if __name__=="__main__":
     with open('10.txt', 'rt') as test_file:
         b64_data = test_file.read()
         ct = b64_to_bytes(b64_data)
-        pt = aes_cbc_decrypt(ct, "YELLOW SUBMARINE", bytearray([0 for _ in range(BLK_SZ)]))
-        print(f"[+] Decrupted Plaintext: \n{pt}")
+        key = "YELLOW SUBMARINE"
+        iv = bytearray([0 for _ in range(BLK_SZ)])
+        pt = aes_cbc_decrypt(ct, key, iv)
+        print(f"[+] Decrypted Plaintext: \n{pt.decode('utf-8')}")
+
+        assert (aes_cbc_encrypt(pt, key, iv) == ct)
+        print("[+] Test passed.")

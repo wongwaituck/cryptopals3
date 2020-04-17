@@ -14,6 +14,11 @@ from challenge3 import bruteforce_single_byte
 # checks whether a string is printable ascii
 def is_printable_ascii(x):
     import string
+    if type(x) == bytearray:
+        try:
+            x = x.decode('utf-8')
+        except:
+            return False
     for c in x:
         if c not in string.printable:
             return False
@@ -38,6 +43,6 @@ if __name__=="__main__":
 
     key, x, s = find_single_xor(hex_strings)
     if s:
-        print(f"[+] String found! Ciphertext: {x} Key: {key} Plaintext: {s}")
+        print(f"[+] String found! Ciphertext: {x} Key: {key} Plaintext: {s.decode('utf-8')}")
     else:
         print("[-] Failed to find ciphertext. SAD!")

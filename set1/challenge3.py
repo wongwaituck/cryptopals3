@@ -82,6 +82,11 @@ def bruteforce_single_byte(x):
     for i in range(256):
         test = bytearray([i for _ in range(len_x)])
         xored_str = xor(x, test)
+        try:
+            xored_str = xored_str.decode('utf-8')
+        except:
+            results.append(100 * len(x))
+            continue
         test_score = l1_english_dist(xored_str)
         results.append(test_score)
 
@@ -96,4 +101,4 @@ if __name__=="__main__":
     key, pt = bruteforce_single_byte(test)
 
     print(f"Key: {key}")
-    print(f"Plaintext: {pt}")
+    print(f"Plaintext: {pt.decode('utf-8')}")

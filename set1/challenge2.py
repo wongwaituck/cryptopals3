@@ -18,15 +18,15 @@ If your function works properly, then when you feed it the string:
 import challenge1
 
 def xor(x, y):
-    res = ""
+    res = []
     for c, d in zip(x, y):
-        res += chr(c ^ d)
-    return res
+        res.append(c ^ d)
+    return bytearray(res)
 
 def fixed_xor(x, y):
     x_1 = challenge1.hex_to_bytearray(x)
     y_1 = challenge1.hex_to_bytearray(y)
-    z_1 = bytearray(xor(x_1, y_1), 'utf-8')
+    z_1 = xor(x_1, y_1)
     z = challenge1.bytes_to_hex(z_1)
 
     return z

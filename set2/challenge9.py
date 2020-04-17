@@ -16,13 +16,25 @@ So: pad any block to a specific block length, by appending the number of bytes o
 
 # pads a block to sz bytes, or adds a sz byte block if there is no such pad.
 def pkcs7_pad(x, sz):
-    pad = chr(sz) * sz if len(x) % sz == 0 else chr(sz - len(x)) * (sz - len(x))
-    return x + pad
+    if type(x) == str:
+        x = bytearray(map(lambda z: ord(z), x))
+    pad = chr(sz) * sz if len(x) % sz == 0 else chr(sz -(len(x) % sz)) * (sz -(len(x) % sz))
+    return x + bytearray(map(lambda x: ord(x), pad))
+
+# unpads a pkcs7_padded plaintext block
+def pkcs7_unpad(x):
+    if type(x)== str:
+        return x[:-(ord(x[-1]))]
+    else:
+        return x[:-x[-1]]
 
 
 if __name__=="__main__":
-    test = "YELLOW SUBMARINE"
-    test_ans = "YELLOW SUBMARINE\x04\x04\x04\x04"
+    test = b"YELLOW SUBMARINE"
+    test_ans = b"YELLOW SUBMARINE\x04\x04\x04\x04"
 
-    assert pkcs7_pad(test, 20) == test_ans
+    padded = pkcs7_pad(test, 20)
+
+    assert padded == test_ans
+    assert pkcs7_unpad(padded) == test
     print("[+] Test passed!")
