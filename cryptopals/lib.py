@@ -9,6 +9,8 @@ import base64
 import itertools 
 import functools 
 
+AES_BLK_SZ = 16
+AES_KEY_SZ = 16
 
 # coverts hex string to bytearray
 def fromhex(x):
@@ -32,9 +34,9 @@ def fromb64(x):
     return base64.standard_b64decode(x)
 
 # xors two strings/bytearray
-def xor(x, y):
+def xor(*args):
     from pwn import xor as zor
-    return zor(x, y)
+    return zor(*args)
 
 
 ### SYMMETRIC KEY HELPER FUNCTIONS ###
@@ -103,24 +105,37 @@ def pkcs7_unpad(x):
 
 
 # AES CBC decrypts the given ciphertext ct with key k and returns the plaintext pt
-def aes_cbc_decrypt(ct, key, iv):
+def aes_cbc_decrypt(ct, key, iv, unpad=False):
     cipher = AES.new(key, AES.MODE_CBC, iv)
-    pt = pkcs7_unpad(cipher.decrypt(ct))
+    pt = cipher.decrypt(ct)
+    if unpad:
+        pt = pkcs7_unpad(pt)
     return pt
     
     
 # AES CBC encrypts the given plaintext data pt with key k and returns a tuple (ct, iv)
-def aes_cbc_encrypt(pt, key, iv=None):
-    data = pkcs7_pad(pt, AES.block_size)
+def aes_cbc_encrypt(pt, key, iv=None, should_pad=False):
+    if not iv:
+        iv = randbytes(AES_BLK_SZ)
+    if should_pad:
+        pt = pkcs7_pad(pt, AES_BLK_SZ)
     cipher = AES.new(key, AES.MODE_CBC, iv)
-    ct = cipher.encrypt(pkcs7_pad(data, AES.block_size))
+    ct = cipher.encrypt(pt)
     return ct, iv
 
-# returns a valid padding if the PKCS7 padding is correct
-def valid_pad(pt):
+# returns a valid padding if the PKCS7 padding is correct for data provided in x
+def valid_pad(x, null_is_valid=True):
     if x == str:
         x = bytearray(x, 'utf-8')
-    pad_sz = ord(x[-1]) if type(x[-1]) == str else int(x[-1])
+    try:
+        pad_sz = ord(x[-1]) if type(x[-1]) == str else int(x[-1])
+        if not null_is_valid and pad_sz == 0:
+            return False
 
-    for i in range(pad_sz):
-        assert(x[-(i+1)] == x[-1])   
+        valid = True
+        for i in range(pad_sz):
+            valid = valid and (x[-(i+1)] == x[-1])   
+
+        return valid
+    except:
+        return False
