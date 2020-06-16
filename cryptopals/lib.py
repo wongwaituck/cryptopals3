@@ -125,6 +125,33 @@ def aes_cbc_encrypt(pt, key, iv=None, should_pad=False):
     ct = cipher.encrypt(pt)
     return ct, iv
 
+def aes_ctr_enc(pt, key, nonce):
+    # produce key stream
+    pt_chunks = chunk(pt, AES_BLK_SZ)
+    from pwn import p64
+
+    ct = bytearray([])
+
+    for i, pt_chunk in enumerate(pt_chunks):
+        keystream_input = p64(nonce) + p64(i)
+        keystream = aes_ecb_enc(keystream_input, key)
+        ct = ct + xor(keystream, pt_chunk)
+
+    return ct[:len(pt)]
+
+def aes_ctr_dec(ct, key, nonce):
+    ct_chunks = chunk(ct, AES_BLK_SZ)
+    pt = bytearray([])
+    from pwn import p64
+
+    for i, ct_chunk in enumerate(ct_chunks):
+        keystream_input = p64(nonce) + p64(i)
+        keystream = aes_ecb_enc(keystream_input, key)
+        pt = pt + xor(keystream, ct_chunk)
+
+    return pt[:len(ct)]
+
+
 # returns a valid padding if the PKCS7 padding is correct for data provided in x
 def valid_pad(x, null_is_valid=True):
     if x == str:
