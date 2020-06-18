@@ -35,8 +35,14 @@ def fromb64(x):
 
 # xors two strings/bytearray
 def xor(*args):
+    args_t = []
+    for arg in args:
+        if type(arg) == bytearray:
+            args_t.append(bytes(arg))
+        else:
+            args_t.append(arg)
     from pwn import xor as zor
-    return zor(*args)
+    return zor(*args_t)
 
 
 ### SYMMETRIC KEY HELPER FUNCTIONS ###
@@ -168,3 +174,125 @@ def valid_pad(x, null_is_valid=True):
         return valid
     except:
         return False
+
+
+FREQUENCY_TABLE = {
+    "E": 11.162,
+    "T": 9.356,
+    "A": 8.497,
+    "O": 7.507,
+    "I": 7.546,
+    "N": 6.749,
+    "S": 6.327,
+    "R": 7.587,
+    "H": 6.094,
+    "D": 4.253,
+    "L": 4.025,
+    "U": 2.758,
+    "C": 2.202,
+    "M": 2.406,
+    "F": 2.228,
+    "Y": 1.994,
+    "W": 2.560,
+    "G": 2.015,
+    "P": 1.929,
+    "B": 1.492,
+    "V": 0.978,
+    "K": 1.292,
+    "X": 0.150,
+    "Q": 0.095,
+    "J": 0.153,
+    "Z": 0.077
+}
+
+# calculate L1 distance from english character frequency
+# x: string
+def l1_english_dist(x):
+    import string
+    for c in x:
+        if not c in string.printable:
+            return 99999999999
+
+    x = x.upper()
+    dist = 0.0
+    freq_table = {}
+    
+    for c in x:
+        if c in freq_table:
+            freq_table[c] += 100.0/(len(x))
+        else:
+            freq_table[c] = 100.0/len(x)
+    
+    for k in freq_table.keys():
+        if k in FREQUENCY_TABLE:
+            dist += abs(freq_table[k] - FREQUENCY_TABLE[k])
+        else:
+            dist += freq_table[k] 
+    
+    for k in FREQUENCY_TABLE.keys():
+        if k not in freq_table:
+            dist += FREQUENCY_TABLE[k]
+
+    return dist
+
+# bruteforce a single byte xor key on bytearray x
+def bruteforce_single_byte(x, truncate_null=False):
+    if type(x) == str:
+        x = bytearray(x, 'utf-8')
+    len_x = len(x)
+
+    results = []
+
+    for i in range(256):
+        if truncate_null:
+            xp = bytes(x).replace(b'\x00', b'')
+        else:
+            xp = bytes(x)
+        test = bytearray([i for _ in range(len(xp))])
+        
+        xored_str = xor(xp, bytes(test))
+        try:
+            xored_str = xored_str.decode('utf-8')
+        except:
+            results.append(100 * len(xp))
+            continue
+        test_score = l1_english_dist(xored_str)
+        results.append(test_score)
+    min_result = min(results)
+    min_char_idx = results.index(min_result)
+    min_char = chr(min_char_idx)
+    return min_char, xor(x, bytearray([min_char_idx for _ in range(len_x)]))
+
+# takes a binary string and pads it to byte length (8 bits)
+def byte_pad(x):
+    return pad(x, 8, "0")
+
+
+def binary_str(x):
+    return bin(x)[2:]
+
+
+def padded_binary_str(x):
+    return byte_pad(binary_str(x))
+
+# takes 2 bytearrays and find the edit distance between the 2 byte arrays
+def edit_dist(x, y):
+    cum_edit_dist = 0
+
+    for x_c, y_c in zip(x, y):
+        sx_c = padded_binary_str(x_c)
+        sy_c = padded_binary_str(y_c)
+        for sx_ci, sy_ci in zip(sx_c, sy_c):
+            if sx_ci != sy_ci:
+                cum_edit_dist += 1
+
+    return cum_edit_dist
+
+# transpose the blocks - i.e. takes the first byte of every block and put them into the first block
+# 2nd byte into the 2nd block... etc.
+def transpose_blks(blks):
+    transposed_blks = [bytearray([]) for _ in range(len(blks[0]))]
+    for i in range(len(blks[0])):
+        for j in range(len(blks)):
+            transposed_blks[i] += bytearray([blks[j][i]])
+    return transposed_blks
