@@ -296,3 +296,64 @@ def transpose_blks(blks):
         for j in range(len(blks)):
             transposed_blks[i] += bytearray([blks[j][i]])
     return transposed_blks
+
+
+def TGFSR(w,n,m,r,a,u,d,s,b,t,c,l,f,seed=5489):
+    # initialize seed
+    MT = [0 for _ in range(n)]
+    index = n + 1
+    MT[0] = seed
+    lower_mask = (1 << r) - 1
+    upper_mask = ((1 << w) - 1) ^ lower_mask
+
+    for i in range(1, n):
+        MT[i] = ((1 << w) - 1) & (f * (MT[i-1] ^ (MT[i-1] >> (w-2))) + i)
+
+    def twist():
+        nonlocal index
+        for i in range(n):
+            x = (MT[i] & upper_mask) + (MT[(i+1) % n] & lower_mask)
+            xA = x >> 1
+            if (x % 2 != 0):
+                xA = xA ^ a
+            MT[i] = MT[(i + m) % n] ^ xA
+        index = 0
+
+    def extract_number():
+        nonlocal index
+        if index >= n :
+            twist()
+        y = MT[index]
+        y = y ^ ((y >> u) & d)
+        y = y ^ ((y << s) & b)
+        y = y ^ ((y << t) & c)
+        y = y ^ (y >> l)
+        index = index + 1
+        return ((1 << w) - 1) & y
+    return extract_number
+
+def mt19937(seed):
+    w, n, m, r = (32, 624, 397, 31)
+    a = 0x9908b0DF
+    u, d = (11, 0xFFFFFFFF)
+    s, b = (7, 0x9D2C5680)
+    t, c = (15, 0xEFC60000)
+    l = 18
+    f = 1812433253
+
+    return TGFSR(w,n,m,r,a,u,d,s,b,t,c,l,f,seed)
+
+def mt19937_64(seed):
+    w, n, m, r = (64, 312, 156, 31)
+    a = 0xB5026F5AA96619E9
+    u, d = (29, 0x5555555555555555)
+    s, b = (17, 0x71D67FFFEDA60000)
+    t, c = (37, 0xFFF7EEE000000000)
+    l = 43
+    f = 6364136223846793005
+
+    return TGFSR(w,n,m,r,a,u,d,s,b,t,c,l,f,seed)
+
+def get_unix_timestamp():
+    from datetime import datetime
+    return int(datetime.strftime(datetime.utcnow(), "%s"))
