@@ -11,6 +11,7 @@ import functools
 
 AES_BLK_SZ = 16
 AES_KEY_SZ = 16
+CTR_DEFAULT_NONCE_SZ = 8
 
 # coverts hex string to bytearray
 def fromhex(x):
@@ -132,9 +133,10 @@ def aes_cbc_encrypt(pt, key, iv=None, should_pad=False):
     return ct, iv
 
 def aes_ctr_enc(pt, key, nonce):
+    from pwn import p64, u64
+
     # produce key stream
     pt_chunks = chunk(pt, AES_BLK_SZ)
-    from pwn import p64
 
     ct = bytearray([])
 
@@ -144,6 +146,7 @@ def aes_ctr_enc(pt, key, nonce):
         ct = ct + xor(keystream, pt_chunk)
 
     return ct[:len(pt)]
+
 
 def aes_ctr_dec(ct, key, nonce):
     ct_chunks = chunk(ct, AES_BLK_SZ)
