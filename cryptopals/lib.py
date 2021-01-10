@@ -20,11 +20,15 @@ def fromhex(x):
 
 # converts bytearray to hex string
 def tohex(x):
+    if type(x) == bytes:
+        x = bytearray(x)
     assert type(x) == bytearray
     return x.hex()
 
 #converts bytearray to b64 string
 def tob64(x):
+    if type(x) == bytes:
+        x = bytearray(x)
     assert type(x) == bytearray
     return base64.standard_b64encode(x)
 
