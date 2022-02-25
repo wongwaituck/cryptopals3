@@ -63,11 +63,11 @@ def pad(z, sz, ch, start=True):
     return z
 
 # chunk bytearray x to a list of bytearrays of size sz, padding the last entry if it is not of sz s
-def chunk(x, sz):
+def chunk(x, sz, should_pad=True):
     if type(x) == bytearray:
         x = bytes(x)
     l = [x[i:i+sz] for i in range(0, len(x), sz)]
-    if len(l[-1]) != sz:
+    if len(l[-1]) != sz and should_pad:
         l[-1] = pad(l[-1], sz, bytearray([0]), False)
 
     return l
