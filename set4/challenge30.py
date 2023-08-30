@@ -22,7 +22,7 @@ def generate_challenge(k: bytes) -> str:
     '''
     generates the challenge digest
     '''
-    return MD4.MD4HMAC(k, CHALLENGE_PHRASE)
+    return MD4.MD4_keyed_MAC(k, CHALLENGE_PHRASE)
 
 def hash_extend_MD4(md: str, ad: bytes) -> str:
     '''
@@ -51,7 +51,7 @@ if __name__=="__main__":
     challenge = generate_challenge(key)
     to_append = b";admin=true"
     mds_extended = hash_extend_MD4(challenge, to_append)
-    actual_md = MD4.MD4HMAC(b"", MD4.pad(key + CHALLENGE_PHRASE) + to_append)
+    actual_md = MD4.MD4_keyed_MAC(b"", MD4.pad(key + CHALLENGE_PHRASE) + to_append)
     assert(actual_md in mds_extended)
 
     print("[+] All tests passed")

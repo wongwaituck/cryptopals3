@@ -45,7 +45,7 @@ def generate_challenge(k: bytes) -> str:
     '''
     generates the challenge digest
     '''
-    return SHA1.SHA1HMAC(k, CHALLENGE_PHRASE)
+    return SHA1.SHA1_keyed_MAC(k, CHALLENGE_PHRASE)
 
 
 def hash_extend_SHA1(md: str, ad: bytes) -> str:
@@ -65,6 +65,6 @@ if __name__=="__main__":
     challenge = generate_challenge(key)
     to_append = b";admin=true"
     mds_extended = hash_extend_SHA1(challenge, to_append)
-    actual_md = SHA1.SHA1HMAC(b"", SHA1.SHA1pad(key + CHALLENGE_PHRASE) + to_append)
+    actual_md = SHA1.SHA1_keyed_MAC(b"", SHA1.SHA1pad(key + CHALLENGE_PHRASE) + to_append)
     assert(actual_md in mds_extended)
     print("[+] Test case passed!")

@@ -582,7 +582,7 @@ class SHA1:
         return hh
 
     @staticmethod
-    def SHA1HMAC(key, message):
+    def SHA1_keyed_MAC(key, message):
         return SHA1.sha1(key + message)
 
 
@@ -773,5 +773,5 @@ class MD4:
         )
 
     @staticmethod
-    def MD4HMAC(key, message):
+    def MD4_keyed_MAC(key, message):
         return MD4.md4(key + message)
