@@ -45,7 +45,7 @@ def generate_challenge(k: bytes) -> str:
     '''
     generates the challenge digest
     '''
-    return SHA1HMAC(k, CHALLENGE_PHRASE)
+    return SHA1.SHA1HMAC(k, CHALLENGE_PHRASE)
 
 
 def hash_extend_SHA1(md: str, ad: bytes) -> str:
@@ -56,7 +56,7 @@ def hash_extend_SHA1(md: str, ad: bytes) -> str:
     h0, h1, h2, h3, h4 = [int(md[i:i+8], 16) for i in range(0, len(md), 8)]
     mds = []
     for i in range(64):
-        md = sha1(ad, h0, h1, h2, h3, h4, target_len=len(CHALLENGE_PHRASE) + len(md) + i)
+        md = SHA1.sha1(ad, h0, h1, h2, h3, h4, target_len=len(CHALLENGE_PHRASE) + i)
         mds.append(md)
     return mds
 
@@ -65,6 +65,6 @@ if __name__=="__main__":
     challenge = generate_challenge(key)
     to_append = b";admin=true"
     mds_extended = hash_extend_SHA1(challenge, to_append)
-    actual_md = SHA1HMAC(b"", SHA1pad(key + CHALLENGE_PHRASE) + to_append)
+    actual_md = SHA1.SHA1HMAC(b"", SHA1.SHA1pad(key + CHALLENGE_PHRASE) + to_append)
     assert(actual_md in mds_extended)
     print("[+] Test case passed!")
