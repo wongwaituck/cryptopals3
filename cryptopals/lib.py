@@ -584,6 +584,25 @@ class SHA1:
     @staticmethod
     def SHA1_keyed_MAC(key, message):
         return SHA1.sha1(key + message)
+    
+    @staticmethod
+    def HMACSHA1(key: bytes, message: bytes) -> str:
+        blk_sz = 64
+        # from https://en.wikipedia.org/wiki/HMAC#Implementation
+        def _compute_block_sized_key(key: bytes, block_size: int) -> bytes:
+            if len(key) > block_size:
+                key = bytes.fromhex(SHA1.sha1(key))
+            else:
+                # pad with 0 and use that as the key
+                key = pad(key, block_size, b'\x00', start=False)
+            return key
+
+        # compute block sized key
+        block_sized_key = _compute_block_sized_key(key, blk_sz)
+        o_key_pad = xor(block_sized_key, b"\x5c" * blk_sz)
+        i_key_pad = xor(block_sized_key, b"\x36" * blk_sz)
+
+        return SHA1.sha1(o_key_pad + bytes.fromhex(SHA1.sha1(i_key_pad + message)))
 
 
 #####################
