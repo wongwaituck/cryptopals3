@@ -35,9 +35,7 @@ Note that you'll need to write your own modexp (this is blackboard math, don't f
 '''
 
 import secrets
-import functools
 
-@functools.cache
 def modexp(m: int, e: int, n: int) -> int:
     if n == 1:
         return 0
